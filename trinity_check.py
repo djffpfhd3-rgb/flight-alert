@@ -31,7 +31,10 @@ def check():
             page.set_default_timeout(30000)
             response = page.goto(URL, wait_until="domcontentloaded", timeout=45000)
             if not response or response.status != 200:
-                raise RuntimeError("homepage_http_error")
+                body = page.locator('body').inner_text().lower()
+                blocked = any(word in body for word in ('access denied', 'verify you are human', 'automated', 'just a moment', 'security check'))
+                code = response.status if response else 0
+                raise RuntimeError(f"homepage_http_{code}_security_screen_{blocked}")
             page.wait_for_function("typeof chooseItinerary === 'function'")
             # Populate the site's ordinary search form, then use its own submit
             # handler. Queue, CSRF and session behavior remain entirely intact.
@@ -97,6 +100,8 @@ if __name__ == '__main__':
     except Exception as exc:
         # Do not log exception messages: browser errors can contain session URLs.
         result = {'status': 'UNKNOWN', 'target': TARGET, 'error_type': type(exc).__name__}
+        if type(exc) is RuntimeError:
+            result['reason'] = str(exc)
     result['checked_at'] = datetime.now(ZoneInfo('Asia/Seoul')).isoformat()
     print(json.dumps(result, ensure_ascii=False))
     with open('result.json', 'w') as f:
