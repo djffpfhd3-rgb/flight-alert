@@ -1,0 +1,30 @@
+name: Trinity Seat Verification
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - trinity_check.py
+      - test_trinity.py
+      - .github/workflows/trinity-verify.yml
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest -v
+      - run: python -m pip install playwright==1.56.0
+      - run: python -m playwright install --with-deps chromium
+      - name: Verify actual fare availability
+        run: python trinity_check.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: seat-verification
+          path: result.json
+          retention-days: 7
