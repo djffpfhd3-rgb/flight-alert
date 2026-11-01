@@ -6,15 +6,16 @@ on:
 jobs:
   inspect:
     runs-on: ubuntu-latest
+
     steps:
       - name: Install Playwright
         run: |
-          pip install playwright
-          playwright install --with-deps chromium
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
 
       - name: Inspect booking page
         run: |
-          cat > inspect.py <<'PY'
+          cat > airbusan_check.py <<'PY'
           from playwright.sync_api import sync_playwright
 
           with sync_playwright() as p:
@@ -24,6 +25,7 @@ jobs:
               page.on("request", lambda r: print(
                   "REQUEST:", r.method, r.url.split("?")[0]
               ))
+
               page.on("response", lambda r: print(
                   "RESPONSE:", r.status, r.url.split("?")[0]
               ))
@@ -34,13 +36,17 @@ jobs:
                       wait_until="networkidle",
                       timeout=60000
                   )
+
                   print("PAGE TITLE:", page.title())
                   print("PAGE URL:", page.url)
                   print("PAGE TEXT:")
                   print(page.locator("body").inner_text()[:5000])
+
               except Exception as e:
                   print("ERROR:", str(e))
+
               finally:
                   browser.close()
           PY
-          python inspect.py
+
+          python airbusan_check.py
