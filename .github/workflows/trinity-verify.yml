@@ -1,11 +1,6 @@
 name: Trinity Seat Verification
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - trinity_check.py
-      - test_trinity.py
-      - .github/workflows/trinity-verify.yml
 permissions:
   contents: read
 jobs:
